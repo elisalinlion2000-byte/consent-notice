@@ -380,7 +380,7 @@ body{margin:0}
     <button class="choice" data-r="一般" aria-pressed="false"><b>一般領隊</b><span>APP 全面上線後開始使用</span></button></div></div></section>
   <section class="form" aria-label="出團日"><div class="datebox"><span class="eyebrow">出團日（出發日）</span><div class="bigdate" id="bigdate"></div>
     <div class="datectl"><label for="dep" class="sr">變更出團日</label><input type="date" id="dep"><span class="note">預設為今天，可改成你的出團日</span></div></div></section>
-  <section class="result" aria-live="polite"><div class="phases" id="phases"></div></section>
+  <section class="result" aria-live="polite"><div class="phases" id="phases"><p class="note" style="padding:2.5rem 1rem;text-align:center;font-size:1rem">載入中，請稍候…</p></div></section>
   <section style="display:grid;gap:12px"><h2 id="mtitle">整體時程</h2><p class="note" style="margin:0">依你選的身分顯示；有底色的是你目前出團日所在的時段。</p><div class="tbl"><table class="matrix" id="matrix"></table></div>
     <p class="note">用哪個平台以「出團日」為準。</p></section>
   <section class="faqsec"><h2>常見問題</h2><div class="ftabs" id="faqtabs" role="group" aria-label="主題"></div><div class="faqlist" id="faqlist"></div><div id="faqadd"></div></section>
@@ -417,14 +417,15 @@ function err(e){toast((e&&e.message)||String(e));}
 
 /* ---------- 啟動 ---------- */
 (async()=>{try{READS=JSON.parse(localStorage.getItem('reads')||'{}')||{}}catch(_){READS={}}
+  const fail=()=>{$('phases').innerHTML='<p class="note" style="padding:2.5rem 1rem;text-align:center;font-size:1rem">連線失敗，請重新整理網頁。若還是不行，請稍後再試。</p>';};
   const boot=d=>{D=d;document.querySelectorAll('.choice').forEach(x=>x.setAttribute('aria-pressed',x.dataset.r===role));
     if(!$('dep').value){const n=new Date();$('dep').value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;}
     render();drawFaq();};
   let cached=null;try{cached=localStorage.getItem('dcache')}catch(_){}
   if(cached){try{boot(JSON.parse(cached));}catch(_){cached=null;}}
   let fresh;
-  try{fresh=await run('getData');}catch(x){if(!cached)err(x);return;}
-  if(!fresh||!fresh.ok){if(!cached)toast((fresh&&fresh.msg)||'讀取資料失敗');return;}
+  try{fresh=await run('getData');}catch(x){if(!cached)fail();return;}
+  if(!fresh||!fresh.ok){if(!cached)fail();return;}
   const js=JSON.stringify(fresh);
   try{localStorage.setItem('dcache',js)}catch(_){}
   if(js!==cached)boot(fresh);})();
